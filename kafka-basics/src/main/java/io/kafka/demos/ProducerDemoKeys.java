@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
-public class ProducerDemoWithCallback {
-    public static final String DEMO_JAVA = "demo_java";
-    private static final Logger log = LoggerFactory.getLogger(ProducerDemoWithCallback.class.getSimpleName());
+public class ProducerDemoKeys {
+    public static final String TOPIC_DEMO_JAVA = "demo_java";
+    private static final Logger log = LoggerFactory.getLogger(ProducerDemoKeys.class.getSimpleName());
 
     public static void main(String[] args) {
         log.info("I am a Kafka Producer");
@@ -21,8 +21,11 @@ public class ProducerDemoWithCallback {
 
         KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
 
-        for (int i = 0; i < 10 ; i++) {
-            ProducerRecord<String, String> producerRecord = new ProducerRecord<>(DEMO_JAVA, "hello world "+i);
+        for (int i = 0; i < 10; i++) {
+            String value = "hello world " + i;
+            String key = "id_" + i;
+
+            ProducerRecord<String, String> producerRecord = new ProducerRecord<>(TOPIC_DEMO_JAVA, key, value);
 
             producer.send(producerRecord, new Callback() {
                 @Override
@@ -30,6 +33,7 @@ public class ProducerDemoWithCallback {
                     if (e == null) {
                         log.info("Received metadata/ \n" +
                                 "Topic: " + metadata.topic() + "\n" +
+                                "Key: " + producerRecord.key() + "\n" +
                                 "Partition: " + metadata.partition() + "\n" +
                                 "Offset: " + metadata.offset() + "\n" +
                                 "Timestamp: " + metadata.timestamp());
@@ -38,15 +42,8 @@ public class ProducerDemoWithCallback {
                     }
                 }
             });
-            //todo: The bellow code makes that messages goes to different partitions because it sleeps one second between each message.
-            // If commenting this code the messages will go to the same partition because of the StickyPartitioner
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
-
+        //todo: Analyzing the result we have that: all Keys goes to the same partition in all the executions.
         producer.flush();
 
         producer.close();
