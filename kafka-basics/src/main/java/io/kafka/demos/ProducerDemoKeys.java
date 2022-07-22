@@ -43,7 +43,7 @@ public class ProducerDemoKeys {
                 }
             });
         }
-        //todo: Analyzing the result we have that: all Keys goes to the same partition in all the executions.
+        //todo: Analyzing the result we have that: The same Keys goes always to the same partition in each executions.
         producer.flush();
 
         producer.close();
